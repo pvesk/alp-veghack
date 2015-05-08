@@ -1,0 +1,39 @@
+Subalpine vegetation change modelled from airphotos 
+
+The data are the percent cover of 4 different vegetation types, estimated from points on air photos. these data were modelled as  changing with a
+ as a power function, thus reflecting a process akin to compound interest. such that V<t2> ~ V<t1> * (t2-t1)^b
+
+This was rewritten by log transformation of the cover percentages:
+log(V<t2>) ~ log(V<t1>) + b * log(t2-t1)
+
+The variables tree cover, grassland cover , scrubland (not wetland), were modelled independently as univariate responses.
+
+We modelled a random effect for the vegetation cover ot asset, which we arbitrarily estimated for 1970, approximately the middle of the time series and the year for which many photos were available. We also modelled the variation around the mean for each site, error variance. 
+
+Our interest was in b, the rate of change. we wished to know the direction and magnitude of the estimate, and whether it varied in relation to grazing and fire over the period. our starting point was to assume that the rate of increase/decrease was constant across space and through time. we then explored the effect of covariates on that rate, b. Livestock grazing was modelled as a binary variable reflecting whether the site was continuously grazed through the study period, or whether it had been grazed but then released from grazing, prior to the first photo series. Fire was modelled as a binary variable representing whether a fire had occurred at some time within the study period. 
+
+Notes:
+log(yi) ~Normal(mu<i>, sigma1)
+mu<i> ~ a[site<i>] + b + ge*g[site[i]] * yrs<i>
+
+RESULTS
+
+Trees
+the model with a grazing effect had slightly less residual deviance than the model with a fixed change (5.7 cf. 5.5) but the DIC was higher (38.2 cf. 36.5) this suggests little evidence for inclusion of a grazing effect on the rate of change of trees. the estimated rate of change and 95% Credible Interval was 1.010 [1.005, 1.014],. that is 1 percent growth in tree cover per annum. The occurrence of fire during the period was also modelled. the model with a fire effect had a DIC=38.6 and Dev 6.0, so it was an inferior model cf. either simple change or grazing. according the fire effect overlapped zero -0.0022 (-0.0110,0.0066). thus fir did not seem to affect the rate of change of tree cover.
+
+Shrubland:
+For shrubs, the model including an effect of grazing had less deviance and a lower DIC than the simple model with a homogeneous rate of change (dev: 36.71 cf 44.2, DIC 68.9 cf 74.1). this indicates considerable support for including the effect of grazing. the rate of shrub increase without grazing was 1.027 [1.019, 1.039], indicating an crease of 2.7% per annum. The coefficient for the grazing effect was -0.016 [-0.030, -0.016]. This estimate and interval is negative and does not overlap zero indicating that grazing reduced the rate of shrub increase. on grazed sites the rate of shrub change was 1.011 [0.998, 1.023] which at the best estimate indicates 00.1% increase, but the interval overlaps 0 indicating it is possible there was no change in shrub cover on grazed sites.
+The mode fro fire effects on shrub cover was inferior to both the simple model and the grazing model, having DIC=76.6 and deviance=44.6. the fire effect overlapped zero, 0.0029 [-0.0111,0.0168]. 
+
+Grassland:
+the model of homogeneous change had lower deviance and DIC than the model of grazing than the model accounting for a grazing effect (Deviance: -24.2 cf. -23.9, DIC: 5.7 cf. 7.9). this indicates it is parsimonious to assume no grazing effect. Indeed, the grazing effect was 0.0019 [-0.0052,0.0089] which greatly overlaps zero, thus indicating uncertainty about the effect.  The rate of change in grass was 0.994 [0.991,0.997] indicating a 0.6% rate of decline in grassland per annum, on average.
+Grassland cover change appeared affected by fire. the DIC for the fire model was 1.2 and the deviance -30.8), thus this was a better model the either the simple model, or that incorporating grazing effects. The effect of fire was positive, 0.0060 [0.00025, 0.0116], decreasing the rate of loss of grassland from 0.991 [0.9871, 0.9952] to 0.997 [0.993, 1.001], that is from about a loss of about 0.9% to about 0.7%. 
+
+
+In sum, tree cover increased by about 1% p.a. and neither grazing nor fire affected this. Shrubs were expanding by about 2.7% p.a. in sites that had been released from grazing and continued grazing maintain shrub cover at a more-or-less constant level. Grassland was declining on those sites released from grazing by ~ 0.9% p.a. and continued grazing maintained the grassland cover. 
+
+
+
+
+MODEL CODE
+model{	for (i in 1:Nobs) {		log.y[i] <- log(tr[i])		log.y[i] ~ dnorm(mu[i],prec) #observations of  cover  are drawn from a mean with some varn		mu[i] <- a[site[i]] + (b+ge*g[site[i]]) * yrs[i]  ## b * yrs[i]   ## equivalent formulation for firedv[i]<-tr[i]+sh[i]+gr[i] + g[site[i]]l.pred[i] <- a[site[i]] + (b+ge*g[site[i]]) * yrs[i]  ##  b * yrs[i] # pred[i]<- exp(l.pred[i])		}for (j in 1:Nsites) {a[j] ~ dnorm(int, prec2)     }b ~ dnorm(0,1.0E-6)ge ~ dnorm(0,1.0E-6)rate <- exp(b)rate.gr <-exp(b+ge)int ~ dnorm(0,1.0E-6)cover1970 <- exp(int)prec <- 1/sd/sd	sd ~ dunif(0,100)prec2 <- 1/sd2/sd2	sd2 ~ dunif(0,100)			}  #END MODEL
